@@ -12,10 +12,10 @@ echo 'requirements = ( HasSingularity == true )' >> submit.jds
 echo 'accounting_group = group_cms' >> submit.jds
 echo '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"' >> submit.jds
 echo '+SingularityBind = "/cvmfs, /cms, /share"' >> submit.jds
-echo "requirements = OpSysMajorVer == 6" >> submit.jds
+#echo "requirements = OpSysMajorVer == 6" >> submit.jds
 echo "log = condor.log" >> submit.jds
-echo "getenv     = True" >> submit.jds
-echo "should_transfer_files = YES" >> submit.jds
+#echo "getenv     = True" >> submit.jds
+#echo "should_transfer_files = YES" >> submit.jds
 echo "when_to_transfer_output = ON_EXIT" >> submit.jds
 echo "output = job_\$(Process).log" >> submit.jds
 echo "error = job_\$(Process).err" >> submit.jds

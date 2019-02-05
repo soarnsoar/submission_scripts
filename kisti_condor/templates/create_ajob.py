@@ -7,7 +7,7 @@
 ###To emulate "source"
 
 import argparse
-
+import os
 parser = argparse.ArgumentParser()
 ####Set options###
 parser.add_argument("--runshell", help="shell file to run")
@@ -33,6 +33,7 @@ else:
 
 if args.runshell:
     runshell = args.runshell
+    os.chmod(runshell, 0755)
 else:
     print "need --runshell argument"
     quit()
