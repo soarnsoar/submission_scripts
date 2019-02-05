@@ -26,6 +26,7 @@ else
 fi
 #echo "use_x509userproxy = true" >> submit.jds
 #echo "transfer_output_remaps = \"*inDQM.root = OUTPUT_\$(Process).root\"" >> submit.jds
+echo ""
 echo "queue $njob" >> submit.jds
 
 echo "===DONE. submit.jds=="
