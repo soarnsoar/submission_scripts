@@ -64,18 +64,18 @@ os.system("make_submit_jds.sh "+runshell+" "+str(njob)+" "+inputtar)
 os.system("mv submit.jds JOBDIR_"+jobname)
 os.system("cp "+runshell+" JOBDIR_"+jobname)
 os.chdir(currentPath+"/JOBDIR_"+jobname)
-script="submit_tmp.sh"
-f_new = open(script,'w')
-f_new.write('condor_submit submit.jds')
-f_new.close()
-os.chmod(script, 0755)
+#script="submit_tmp.sh"
+#f_new = open(script,'w')
+#f_new.write('condor_submit submit.jds')
+#f_new.close()
+#os.chmod(script, 0755)
 
 
 
 if submit == True:
     import subprocess
-    submit=subprocess.Popen(["/bin/bash","-i","-c","source "+script])
-    submit.communicate()
-
+    #submit=subprocess.Popen(["/bin/bash","-i","-c","source "+script])
+    #submit.communicate()
+    os.system("condor_submit submit.jds")
 
 os.chdir(currentPath)

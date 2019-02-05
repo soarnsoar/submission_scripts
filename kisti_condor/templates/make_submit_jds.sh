@@ -8,6 +8,10 @@ echo "===Make submit.jds==="
 echo "executable = ${runshell}" >> submit.jds 
 echo "universe   = vanilla" >> submit.jds
 echo "arguments  = \$(Process)" >> submit.jds
+echo 'requirements = ( HasSingularity == true )' >> submit.jds
+echo 'accounting_group = group_cms' >> submit.jds
+echo '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"' >> submit.jds
+echo '+SingularityBind = "/cvmfs, /cms, /share"' >> submit.jds
 echo "requirements = OpSysMajorVer == 6" >> submit.jds
 echo "log = condor.log" >> submit.jds
 echo "getenv     = True" >> submit.jds
