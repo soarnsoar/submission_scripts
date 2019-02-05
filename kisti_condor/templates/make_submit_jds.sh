@@ -5,7 +5,7 @@ inputtar=$3
 
 echo "===Make submit.jds==="
 
-echo "executable = ${1}" >> submit.jds 
+echo "executable = ${runshell}" >> submit.jds 
 echo "universe   = vanilla" >> submit.jds
 echo "arguments  = \$(Process)" >> submit.jds
 echo "requirements = OpSysMajorVer == 6" >> submit.jds
