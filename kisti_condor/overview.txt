@@ -1,0 +1,4 @@
+(1)Make jobdir
+(2)bring all necessary files to the jobdir
+(2-1) copy run.sh file
+(3) submit.jds -> run the "run.sh"
