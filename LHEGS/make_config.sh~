@@ -1,0 +1,141 @@
+#!/bin/bash
+
+### settings to modify
+# specify batch system 
+BATCH=LSF # SGE LSF 
+# number of jobs 
+NJOBS=100
+# number of events per job 
+NEVTS=5000  
+# path to submit jobs 
+WORKDIR=`pwd -P`
+# path for private fragments not yet in cmssw
+FRAGMENTDIR=${WORKDIR}
+# release setup 
+#
+export SCRAM_ARCH=slc6_amd64_gcc630
+#SCRAM_ARCH=slc6_amd64_gcc481
+RELEASE=CMSSW_9_3_8
+#RELEASE=CMSSW_7_1_30
+# path to store output files
+ODIR=${WORKDIR}/samples
+
+# define output tags as well as corresponding gridpacks and shower fragments 
+OTAGLIST=()
+GRIDPACKLIST=() 
+GENFRAGMENTLIST=()
+
+#OTAGLIST+=( dyee012j_261_false_pdfwgt )
+OTAGLIST+=( lv_bwcutoff_WJetsToLNu_HT-incl_VMG5_261_false_pdfwgt )
+GRIDPACKLIST+=( ${WORKDIR}/lv_bwcutoff_WJetsToLNu_HT-incl_VMG5_261_false_pdfwgt_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz )
+#GENFRAGMENTLIST+=( Hadronizer_TuneCUETP8M1_13TeV_MLM_5f_max2j_LHE_pythia8_cff ) 
+GENFRAGMENTLIST+=( Hadronizer_TuneCP5_13TeV_MLM_5f_max4j_qCut19_LHE_pythia8_cff )
+#GENFRAGMENT=Hadronizer_TuneCUETP8M1_13TeV_MLM_5f_max4j_LHE_pythia8_cff # wjets/zjets
+#GENFRAGMENT=Hadronizer_TuneCUETP8M1_13TeV_aMCatNLO_FXFX_5f_max2j_max0p_LHE_pythia8_cff # zjets fxfx
+#GENFRAGMENT=Hadronizer_TuneCUETP8M1_13TeV_aMCatNLO_FXFX_5f_max2j_max1p_LHE_pythia8_cff # ttbar fxfx 
+### done with settings 
+
+
+### setup release 
+if [ -r ${WORKDIR}/${RELEASE}/src ] ; then 
+    echo release ${RELEASE} already exists
+else
+    scram p CMSSW ${RELEASE}
+fi
+cd ${WORKDIR}/${RELEASE}/src
+eval `scram runtime -sh`
+
+
+### checkout generator configs 
+git-cms-addpkg --quiet Configuration/Generator
+
+
+### copy additional fragments if needed 
+if [ -d "${FRAGMENTDIR}" ]; then 
+    cp ${FRAGMENTDIR}/*.py ${CMSSW_BASE}/src/Configuration/Generator/python/. 
+fi
+
+
+### scram release 
+scram b 
+
+
+### start tag loop for setups to be validated  
+NTAG=`echo "scale=0; ${#OTAGLIST[@]} -1 " | bc` 
+
+for ITAG in `seq 0 ${NTAG}`; do
+    OTAG=${OTAGLIST[${ITAG}]}
+    GRIDPACK=${GRIDPACKLIST[${ITAG}]}
+    GENFRAGMENT=${GENFRAGMENTLIST[${ITAG}]}
+    
+    ### move to python path 
+    cd ${CMSSW_BASE}/src/Configuration/Generator/python/
+    
+    ### check that fragments are available 
+    echo "Check that fragments are available ..."
+    if [ ! -s ${GENFRAGMENT}.py ] ; then 
+	echo "... cannot find ${GENFRAGMENT}.py"
+	exit 0;
+    else
+	echo "... found required fragments!"
+    fi
+    
+    ### create outputpath 
+    if [ "${ITAG}" == 0 ] ; then
+	ODIR=${ODIR}/${OTAG}
+    else
+	ODIR=${ODIR}/../${OTAG}
+    fi
+    mkdir -p ${ODIR}
+    
+    ### create generator fragment 
+    CONFIG=${OTAG}_cff.py
+    if [ -f ${CONFIG} ] ; then 
+	rm ${CONFIG} 
+    fi
+    
+    cat > ${CONFIG} <<EOF
+import FWCore.ParameterSet.Config as cms
+externalLHEProducer = cms.EDProducer('ExternalLHEProducer', 
+args = cms.vstring('${GRIDPACK}'),
+nEvents = cms.untracked.uint32(5000),
+numberOfParameters = cms.uint32(1),  
+outputFile = cms.string('cmsgrid_final.lhe'),
+scriptName = cms.FileInPath('GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh')
+)
+EOF
+    cat ${GENFRAGMENT}.py >> ${CONFIG}
+    
+       
+    ### make validation fragment 
+echo "make validation fragment" 
+    cmsDriver.py Configuration/Generator/python/${CONFIG} \
+	-n ${NEVTS} --mc --no_exec --python_filename cmsrun_${OTAG}.py \
+	-s LHE,GEN,VALIDATION:genvalid_all --datatier GEN,GEN-SIM,DQMIO --eventcontent LHE,RAWSIM,DQM \
+	--conditions auto:run2_mc_FULL --beamspot Realistic8TeVCollision 
+
+echo "move to submission directory"
+    ### move to submission directory 
+    cd ${WORKDIR}
+
+
+    ### prepare submission script 
+
+
+
+    cp ${CMSSW_BASE}/src/Configuration/Generator/python/cmsrun_${OTAG}.py . 
+### adjust random numbers 
+    LINE=`egrep -n Configuration.StandardSequences.Services_cff cmsrun_${OTAG}.py | cut -d: -f1 `
+   # SEED=`echo "5267+${OFFSET}" | bc`
+    sed -i "${LINE}"aprocess.RandomNumberGeneratorService.generator.initialSeed=__SEED__ cmsrun_${OTAG}.py  
+    #SEED=`echo "289634+\${OFFSET}" | bc`
+    sed -i "${LINE}"aprocess.RandomNumberGeneratorService.externalLHEProducer.initialSeed=__SEED__ cmsrun_${OTAG}.py  
+    
+
+done # end of tag loop 
+
+
+
+
+
+
