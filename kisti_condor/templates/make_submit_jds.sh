@@ -1,3 +1,19 @@
+#!/bin/bash
+IS_UI10=0
+IS_UI20=0
+if [[ "$HOSTNAME" =~ "ui10" ]];then
+    echo "@@ui10 kisti@@"
+    IS_UI10=1
+elif [[ "$HOSTNAME" =~ "ui20" ]];then
+    echo "@@ui20 kisti@@"
+    IS_UI20=1
+else
+    echo "NOT KISTI"
+    exit
+fi
+
+
+
 runshell=$1
 njob=$2
 inputtar=$3
@@ -8,10 +24,17 @@ echo "===Make submit.jds==="
 echo "executable = ${runshell}" >> submit.jds 
 echo "universe   = vanilla" >> submit.jds
 echo "arguments  = \$(Process)" >> submit.jds
-echo 'requirements = ( HasSingularity == true )' >> submit.jds
-echo 'accounting_group = group_cms' >> submit.jds
-echo '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"' >> submit.jds
-echo '+SingularityBind = "/cvmfs, /cms, /share"' >> submit.jds
+
+if [ $UI20 ];then
+    echo 'requirements = ( HasSingularity == true )' >> submit.jds
+    echo 'accounting_group = group_cms' >> submit.jds
+    echo '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"' >> submit.jds
+    echo '+SingularityBind = "/cvmfs, /cms, /share"' >> submit.jds
+fi
+if [ $UI10 ];then
+    echo 'requirements = OpSysMajorVer == 6' >> submit.jds
+fi
+
 echo "log = condor.log" >> submit.jds
 echo "getenv     = True" >> submit.jds
 echo "should_transfer_files = YES" >> submit.jds
