@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--runshell", help="shell file to run")
 parser.add_argument("--inputtar", help="input file to pass")
 parser.add_argument("--njob", help=" number of jobs")
+
 args = parser.parse_args()
 
 
@@ -32,7 +33,8 @@ if args.inputtar:
     inputtar = args.inputtar
 else:
     print "No input tar"
-    inputtar = ""
+    inputtar = "NONE"
+
 
 import os
 os.system("make_submit_jds.sh "+runshell+" "+str(njob)+" "+inputtar)

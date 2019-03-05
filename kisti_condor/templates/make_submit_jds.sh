@@ -18,22 +18,27 @@ runshell=$1
 njob=$2
 inputtar=$3
 
+if [ "NONE" == "$inputtar" ];then
+    inputtar=""
+fi
 
 echo "===Make submit.jds==="
 
-echo "executable = ${runshell}" >> submit.jds 
+echo "executable = ${runshell}" > submit.jds 
 echo "universe   = vanilla" >> submit.jds
 echo "arguments  = \$(Process)" >> submit.jds
 
-if [ $UI20 ];then
+if [ $IS_UI20 -eq 1 ];then
     echo 'requirements = ( HasSingularity == true )' >> submit.jds
     echo 'accounting_group = group_cms' >> submit.jds
     echo '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest"' >> submit.jds
     echo '+SingularityBind = "/cvmfs, /cms, /share"' >> submit.jds
 fi
-if [ $UI10 ];then
+if [ $IS_UI10 -eq 1 ];then
     echo 'requirements = OpSysMajorVer == 6' >> submit.jds
 fi
+
+
 
 echo "log = condor.log" >> submit.jds
 echo "getenv     = True" >> submit.jds
