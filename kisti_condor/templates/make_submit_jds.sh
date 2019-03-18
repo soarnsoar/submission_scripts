@@ -9,7 +9,7 @@ elif [[ "$HOSTNAME" =~ "ui20" ]];then
     IS_UI20=1
 else
     echo "NOT KISTI"
-    exit
+    #exit
 fi
 
 
